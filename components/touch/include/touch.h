@@ -2,17 +2,18 @@
 #define TOUCH_H
 
 #include "esp_err.h"
+#include "lvgl.h"
+#include "driver/i2c_master.h"
 
-typedef struct {
-    uint16_t x;
-    uint16_t y;
-    uint8_t gesture;
-    uint8_t points;
-} touch_data_t;
+// Touch controller configuration
+#define I2C_MASTER_SCL_IO      8
+#define I2C_MASTER_SDA_IO      18
+#define I2C_MASTER_NUM         I2C_NUM_0
+#define I2C_MASTER_FREQ_HZ     400000
 
-esp_err_t cst816_init(void);
-esp_err_t cst816_read_touch(touch_data_t *touch);
-const char* cst816_gesture_name(uint8_t gesture);
-void touch_task(void *pvParameters);
+// Function declarations
+esp_err_t touch_init(void);
+void touch_lvgl_read(lv_indev_drv_t *drv, lv_indev_data_t *data);
+i2c_master_bus_handle_t touch_get_i2c_bus(void);  // Add this to share bus
 
 #endif // TOUCH_H

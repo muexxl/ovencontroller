@@ -1,0 +1,45 @@
+#define I2C_MASTER_SCL_IO           8
+#define I2C_MASTER_SDA_IO           18
+#define TOUCH_INT_PIN               21
+#define TOUCH_RST_PIN               22
+
+// Pin configuration for display (LANDSCAPE 320x240)
+#define PIN_NUM_MISO -1
+#define PIN_NUM_MOSI 4
+#define PIN_NUM_CLK 5
+#define PIN_NUM_CS 7
+
+#define PIN_NUM_DC 6
+#define PIN_NUM_RST 14
+#define PIN_NUM_BCKL 15
+
+#define LCD_BK_LIGHT_ON_LEVEL 0
+
+// Display configuration - LANDSCAPE mode
+#define LCD_WIDTH  320
+#define LCD_HEIGHT 240
+#define LCD_COL_OFFSET 0
+#define LCD_ROW_OFFSET 0
+
+// Pin configuration for MAX31855 (shares SPI bus with display/SD)
+#define MAX31855_MISO_PIN 19
+#define MAX31855_SCK_PIN  PIN_NUM_CLK
+#define MAX31855_1_CS_PIN 3      // GPIO3 - free pin
+#define MAX31855_2_CS_PIN 23     // GPIO23 - free pin
+
+// Pin configuration for SD Card (shares SPI bus)
+#define SD_MISO_PIN     MAX31855_MISO_PIN
+#define SD_MOSI_PIN     PIN_NUM_MOSI
+#define SD_SCK_PIN      PIN_NUM_CLK
+#define SD_CS_PIN       20
+
+// Pin configuration for IMU on I2C
+#define IMU_SDA_PIN I2C_MASTER_SDA_IO
+#define IMU_SCL_PIN I2C_MASTER_SCL_IO
+#define IMU_INT_PIN 1
+#define IMU_INT2_PIN 2
+
+// Pin configuration for load switching
+#define HEATER_1_PIN 0    // GPIO0 - safe after boot
+#define HEATER_2_PIN 16   // GPIO16 (UART TX) - use if serial debug not needed
+#define FAN_PIN 17      

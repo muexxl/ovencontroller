@@ -26,6 +26,7 @@
 #include "wifi_manager.h"
 #include "ui_manager.h"
 
+#define DISABLE_TEMPERATURE_READING 1
 static const char *TAG = "MAIN";
 
 // Component handles
@@ -81,7 +82,9 @@ static void thermocouple_task(void *arg)
     
     ESP_LOGI(TAG, "Thermocouple reading task started");
     
+    
     while (1) {
+        #ifdef DISABLE_TEMPERATURE_READING
         // Read thermocouple 1
         if (max31855_read_temp(&tc1_handle, &tc1_data) == ESP_OK) {
             if (tc1_data.valid) {
@@ -111,6 +114,7 @@ static void thermocouple_task(void *arg)
         }
         
         // Update UI with new temperatures
+        #endif
         ui_manager_update_temps(temp1, temp2);
         
         vTaskDelay(pdMS_TO_TICKS(450));

@@ -17,6 +17,7 @@ static lv_obj_t *s_screen = NULL;
 static lv_obj_t *s_list = NULL;
 static lv_obj_t *s_status_label = NULL;
 static char s_selected_ssid[33] = {0};
+static int s_network_indices[WIFI_MAX_SCAN_RESULTS];
 
 // Event handlers
 static void scan_clicked(lv_event_t *e)
@@ -51,28 +52,31 @@ static void keyboard_done(const char *password, void *user_data)
 static void network_clicked(lv_event_t *e)
 {
     lv_obj_t *btn = lv_event_get_target(e);
-    lv_obj_t *label = lv_obj_get_child(btn, 0);
-    const char *text = lv_label_get_text(label);
-    
-    // Extract SSID (format: "SSID (RSSI) [AUTH]")
-    char ssid[33];
-    sscanf(text, "%32[^ (]", ssid);
-    strncpy(s_selected_ssid, ssid, sizeof(s_selected_ssid) - 1);
-    
-    ESP_LOGI(TAG, "Selected network: %s", s_selected_ssid);
-    
-    // Check if network is open
+
+    // Get network index from user data
+    int *index_ptr = (int *)lv_event_get_user_data(e);
+    if (!index_ptr) {
+        ESP_LOGE(TAG, "Failed to get network index");
+        return;
+    }
+    int network_index = *index_ptr;
+
+    // Get scan results
     wifi_ap_info_t results[WIFI_MAX_SCAN_RESULTS];
     int count = wifi_manager_get_scan_results(results, WIFI_MAX_SCAN_RESULTS);
-    
-    bool is_open = false;
-    for (int i = 0; i < count; i++) {
-        if (strcmp(results[i].ssid, s_selected_ssid) == 0) {
-            is_open = results[i].is_open;
-            break;
-        }
+
+    if (network_index < 0 || network_index >= count) {
+        ESP_LOGE(TAG, "Invalid network index: %d", network_index);
+        return;
     }
-    
+
+    // Get selected network info
+    strncpy(s_selected_ssid, results[network_index].ssid, sizeof(s_selected_ssid) - 1);
+    s_selected_ssid[sizeof(s_selected_ssid) - 1] = '\0';
+    bool is_open = results[network_index].is_open;
+
+    ESP_LOGI(TAG, "Selected network: %s", s_selected_ssid);
+
     if (is_open) {
         // Connect without password
         wifi_manager_connect(s_selected_ssid, NULL);
@@ -150,18 +154,20 @@ void ui_wifi_screen_refresh(void)
     // Add networks to list
     for (int i = 0; i < count; i++) {
         char btn_text[64];
-        const char *lock = results[i].is_open ? "" : LV_SYMBOL_LOCK;
-        snprintf(btn_text, sizeof(btn_text), "%s %s (%d)", 
+        const char *lock = results[i].is_open ? "" : LV_SYMBOL_LOCK " ";
+        snprintf(btn_text, sizeof(btn_text), "%s%s (%d)",
                  lock, results[i].ssid, results[i].rssi);
-        
+
+        s_network_indices[i] = i;
+
         lv_obj_t *btn = lv_btn_create(s_list);
         lv_obj_set_width(btn, lv_pct(100));
         lv_obj_set_height(btn, 30);
-        lv_obj_add_event_cb(btn, network_clicked, LV_EVENT_CLICKED, NULL);
-        
+        lv_obj_add_event_cb(btn, network_clicked, LV_EVENT_CLICKED, &s_network_indices[i]);
+
         lv_obj_t *label = lv_label_create(btn);
         lv_label_set_text(label, btn_text);
-        lv_obj_set_style_text_font(label, &lv_font_montserrat_10, LV_PART_MAIN);
+        lv_obj_center(label);
     }
     
     lv_label_set_text(s_status_label, "Select network");

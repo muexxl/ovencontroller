@@ -91,41 +91,40 @@ static void network_clicked(lv_event_t *e)
 lv_obj_t* ui_wifi_screen_create(void)
 {
     ESP_LOGI(TAG, "Creating WiFi screen");
-    
+
     s_screen = lv_obj_create(NULL);
-    lv_obj_set_style_bg_color(s_screen, UI_COLOR_BG, LV_PART_MAIN);
-    
+
     // Header
-    ui_create_header(s_screen, "WiFi Setup");
-    
+    lv_obj_t *header_label = lv_label_create(s_screen);
+    lv_label_set_text(header_label, "WiFi Setup");
+    lv_obj_set_pos(header_label, UI_MARGIN, 5);
+
     // Status label
     s_status_label = lv_label_create(s_screen);
     lv_label_set_text(s_status_label, "Ready");
-    lv_obj_set_style_text_color(s_status_label, UI_COLOR_TEXT, LV_PART_MAIN);
     lv_obj_set_pos(s_status_label, UI_MARGIN, UI_HEADER_HEIGHT + 5);
-    
+
     // Network list container
     s_list = lv_obj_create(s_screen);
     lv_obj_set_size(s_list, UI_BUTTON_WIDTH_FULL, 80);
     lv_obj_set_pos(s_list, UI_MARGIN, UI_HEADER_HEIGHT + 25);
-    lv_obj_set_style_bg_color(s_list, lv_color_hex(0x001122), LV_PART_MAIN);
-    lv_obj_set_style_border_width(s_list, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(s_list, 2, LV_PART_MAIN);
     lv_obj_set_flex_flow(s_list, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(s_list, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
     lv_obj_set_scroll_dir(s_list, LV_DIR_VER);
-    lv_obj_set_scrollbar_mode(s_list, LV_SCROLLBAR_MODE_AUTO);
     
     // Scan button
-    lv_obj_t *scan_btn = ui_create_button(s_screen, LV_SYMBOL_REFRESH " Scan", 
-                                          UI_MARGIN, LCD_HEIGHT - 70, 
-                                          UI_BUTTON_WIDTH_FULL, 30);
+    lv_obj_t *scan_btn = lv_btn_create(s_screen);
+    lv_obj_set_size(scan_btn, UI_BUTTON_WIDTH_FULL, 30);
+    lv_obj_set_pos(scan_btn, UI_MARGIN, LCD_HEIGHT - 70);
+    lv_obj_t *scan_label = lv_label_create(scan_btn);
+    lv_label_set_text(scan_label, "Scan Networks");
     lv_obj_add_event_cb(scan_btn, scan_clicked, LV_EVENT_CLICKED, NULL);
-    
+
     // Back button
-    lv_obj_t *back_btn = ui_create_button(s_screen, LV_SYMBOL_LEFT " Back", 
-                                          UI_MARGIN, LCD_HEIGHT - 35, 
-                                          UI_BUTTON_WIDTH_FULL, 30);
+    lv_obj_t *back_btn = lv_btn_create(s_screen);
+    lv_obj_set_size(back_btn, UI_BUTTON_WIDTH_FULL, 30);
+    lv_obj_set_pos(back_btn, UI_MARGIN, LCD_HEIGHT - 35);
+    lv_obj_t *back_label = lv_label_create(back_btn);
+    lv_label_set_text(back_label, "< Back");
     lv_obj_add_event_cb(back_btn, back_clicked, LV_EVENT_CLICKED, NULL);
     
     // Initial scan
@@ -151,7 +150,6 @@ void ui_wifi_screen_refresh(void)
     if (count == 0) {
         lv_obj_t *label = lv_label_create(s_list);
         lv_label_set_text(label, "No networks found");
-        lv_obj_set_style_text_color(label, UI_COLOR_TEXT_DIM, LV_PART_MAIN);
         return;
     }
     

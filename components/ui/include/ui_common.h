@@ -4,6 +4,15 @@
 #include "lvgl.h"
 #include "display.h"
 
+// LVGL symbol compatibility - define missing symbols for older LVGL versions
+#ifndef LV_SYMBOL_LOCK
+#define LV_SYMBOL_LOCK "\xEF\x80\xA3"  // Unicode lock symbol (U+F023)
+#endif
+
+#ifndef LV_SYMBOL_UNLOCK
+#define LV_SYMBOL_UNLOCK "\xEF\x80\xA5"  // Unicode unlock symbol (U+F025)
+#endif
+
 // Screen IDs
 typedef enum {
     UI_SCREEN_MAIN = 0,

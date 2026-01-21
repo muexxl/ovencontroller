@@ -6,6 +6,11 @@
 #include "esp_log.h"
 #include <string.h>
 
+// Define lock symbol if not available in LVGL version
+#ifndef LV_SYMBOL_LOCK
+#define LV_SYMBOL_LOCK "\xEF\x80\xA3"  // Unicode lock symbol (U+F023)
+#endif
+
 static const char *TAG = "UI_WIFI";
 
 static lv_obj_t *s_screen = NULL;

@@ -84,7 +84,8 @@ static void thermocouple_task(void *arg)
     
     
     while (1) {
-        #ifdef DISABLE_TEMPERATURE_READING
+        #if DISABLE_TEMPERATURE_READING
+        #else
         // Read thermocouple 1
         if (max31855_read_temp(&tc1_handle, &tc1_data) == ESP_OK) {
             if (tc1_data.valid) {

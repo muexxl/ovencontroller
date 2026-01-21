@@ -109,8 +109,12 @@ lv_obj_t* ui_wifi_screen_create(void)
     lv_obj_set_size(s_list, UI_BUTTON_WIDTH_FULL, 80);
     lv_obj_set_pos(s_list, UI_MARGIN, UI_HEADER_HEIGHT + 25);
     lv_obj_set_style_bg_color(s_list, lv_color_hex(0x001122), LV_PART_MAIN);
+    lv_obj_set_style_border_width(s_list, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(s_list, 2, LV_PART_MAIN);
     lv_obj_set_flex_flow(s_list, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(s_list, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
     lv_obj_set_scroll_dir(s_list, LV_DIR_VER);
+    lv_obj_set_scrollbar_mode(s_list, LV_SCROLLBAR_MODE_AUTO);
     
     // Scan button
     lv_obj_t *scan_btn = ui_create_button(s_screen, LV_SYMBOL_REFRESH " Scan", 
@@ -152,22 +156,45 @@ void ui_wifi_screen_refresh(void)
     }
     
     // Add networks to list
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count && i < 10; i++) {  // Limit to 10 networks
+        // Validate SSID
+        if (results[i].ssid[0] == '\0') {
+            ESP_LOGW(TAG, "Empty SSID at index %d, skipping", i);
+            continue;
+        }
+
+        // Ensure SSID is null-terminated
+        results[i].ssid[WIFI_MAX_SSID_LEN] = '\0';
+
         char btn_text[64];
-        const char *lock = results[i].is_open ? "" : LV_SYMBOL_LOCK " ";
-        snprintf(btn_text, sizeof(btn_text), "%s%s (%d)",
-                 lock, results[i].ssid, results[i].rssi);
+        const char *lock_prefix = results[i].is_open ? " " : "[*] ";
+        int text_len = snprintf(btn_text, sizeof(btn_text), "%s%s (%d)",
+                                lock_prefix, results[i].ssid, results[i].rssi);
+
+        if (text_len < 0 || text_len >= sizeof(btn_text)) {
+            ESP_LOGW(TAG, "Network name too long, skipping");
+            continue;
+        }
 
         s_network_indices[i] = i;
 
         lv_obj_t *btn = lv_btn_create(s_list);
-        lv_obj_set_width(btn, lv_pct(100));
-        lv_obj_set_height(btn, 30);
+        if (!btn) {
+            ESP_LOGE(TAG, "Failed to create button for network %d", i);
+            continue;
+        }
+
+        lv_obj_set_size(btn, UI_BUTTON_WIDTH_FULL - 10, 30);
         lv_obj_add_event_cb(btn, network_clicked, LV_EVENT_CLICKED, &s_network_indices[i]);
 
         lv_obj_t *label = lv_label_create(btn);
+        if (!label) {
+            ESP_LOGE(TAG, "Failed to create label for network %d", i);
+            lv_obj_del(btn);
+            continue;
+        }
+
         lv_label_set_text(label, btn_text);
-        lv_obj_center(label);
     }
     
     lv_label_set_text(s_status_label, "Select network");
